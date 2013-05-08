@@ -48,8 +48,9 @@ fi
 echo -n "-----> Installing ${SONAR_DIST}...."
 
 # Unzip Sonar
+# `unzip` command is not available. 
 cd ${BUILD_DIR}
-unzip ${CACHE_DIR}/${SONAR_DIST_ZIP}
+jar xvf ${CACHE_DIR}/${SONAR_DIST_ZIP}
 mv ${SONAR_DIST} ${SONAR_HOME}
 
 # Copy vendored properties into Sonar
