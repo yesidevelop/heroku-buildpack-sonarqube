@@ -59,7 +59,7 @@ cp ${BP_DIR}/etc/sonar.properties ${SONAR_HOME}/conf
 # Build the WAR
 cd ${SONAR_HOME}/war
 sed -i -r "s/ant$/ant -DsonarHome=\/app\/sonar/" build-war.sh
-./build-war.sh
+sh build-war.sh
 
 # Copy the vendored boot script for launching the WAR
 cp ${BP_DIR}/opt/boot.sh ${SONAR_HOME}/war
