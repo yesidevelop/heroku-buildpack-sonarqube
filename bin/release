@@ -9,12 +9,12 @@ cat <<EOF
 config_vars:
   JAVA_OPTS: -Xmx384m -Xss512k -XX:+UseCompressedOops
 addons:
-  shared-database:5mb
+  heroku-postgresql
 EOF
 
 if [ ! -f $BUILD_DIR/Procfile ]; then
   cat <<EOF
 default_process_types:
-  web: sh sonar/war/boot.sh
+  web: sh /app/sonarqube/boot.sh
 EOF
 fi

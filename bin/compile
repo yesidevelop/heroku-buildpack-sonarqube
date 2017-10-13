@@ -10,67 +10,152 @@ CACHE_DIR=$2
 
 BP_DIR=`cd $(dirname $0); cd ..; pwd`
 
-SONAR_VERSION="3.5.1"
-SONAR_DIST="sonar-${SONAR_VERSION}"
-SONAR_DIST_ZIP="${SONAR_DIST}.zip"
-SONAR_HOME=${BUILD_DIR}/sonar
+SONAR_VERSION="6.3.1"
+CODESCAN_VERSION="3.7.5"
+ANT_VERSION="1.9.9"
+SONAR_HOME=${BUILD_DIR}/sonarqube
 
-JETTY_RUNNER_VERSION="8.1.0.RC1"
-JETTY_RUNNER_DIST="jetty-runner-${JETTY_RUNNER_VERSION}"
-JETTY_RUNNER_JAR="${JETTY_RUNNER_DIST}.jar"
+install_jdk() {
+  local install_dir=${1}
 
-if [ ! -d ${CACHE_DIR} ]; then
-  mkdir -p ${CACHE_DIR}
-fi
+  JVM_COMMON_BUILDPACK=${JVM_COMMON_BUILDPACK:-https://codon-buildpacks.s3.amazonaws.com/buildpacks/heroku/jvm-common.tgz}
+  mkdir -p /tmp/jvm-common
+  curl --retry 3 --silent --location $JVM_COMMON_BUILDPACK | tar xzm -C /tmp/jvm-common --strip-components=1
+  source /tmp/jvm-common/bin/util
+  source /tmp/jvm-common/bin/java
+  source /tmp/jvm-common/opt/jdbc.sh
 
-# Download Jetty Runner is not in cache
-if [ ! -f ${CACHE_DIR}/${JETTY_RUNNER_JAR} ]; then  
-  JETTY_RUNNER_URL="http://repo1.maven.org/maven2/org/mortbay/jetty/jetty-runner/${JETTY_RUNNER_VERSION}/${JETTY_RUNNER_JAR}"
-  echo -n "-----> Downloading ${JETTY_RUNNER_DIST}....."
-  curl --silent --location ${JETTY_RUNNER_URL} > ${CACHE_DIR}/${JETTY_RUNNER_JAR}
+  install_java_with_overlay ${install_dir}
+}
+
+install_sonarqube() {
+  local BUILD_DIR=${1}
+  local CACHE_DIR=${2}
+
+  SONAR_DIST="sonarqube-${SONAR_VERSION}"
+  SONAR_DIST_ZIP="${SONAR_DIST}.zip"
+
+  if [ ! -d ${CACHE_DIR} ]; then
+    mkdir -p ${CACHE_DIR}
+  fi
+
+  # Download Sonar if not in cache
+  if [ ! -f ${CACHE_DIR}/${SONAR_DIST_ZIP} ]; then
+    SONAR_URL="http://downloads.code-scan.com/bundler/${SONAR_DIST_ZIP}"
+    echo -n "-----> Downloading ${SONAR_DIST}....."
+    curl --silent --location ${SONAR_URL} > ${CACHE_DIR}/${SONAR_DIST_ZIP}
+    echo " done"
+  fi
+
+  echo -n "-----> Installing ${SONAR_DIST}...."
+
+  # Unzip Sonar
+  # `unzip` command is not available.
+  cd ${BUILD_DIR}
+
+  jar xvf ${CACHE_DIR}/${SONAR_DIST_ZIP} >/dev/null
+  mv ${SONAR_DIST} ${SONAR_HOME}
+
+  # Copy vendored properties into Sonar
+  cp ${BP_DIR}/etc/sonar.properties ${SONAR_HOME}/conf
+
+  #make wrapper writable
+  chmod +x $SONAR_HOME/bin/linux-x86-64/./wrapper $SONAR_HOME/bin/linux-x86-64/sonar.sh
+
+  # Copy the vendored boot script for launching the WAR
+  cp ${BP_DIR}/opt/boot.sh ${SONAR_HOME}/
+  chmod +x ${SONAR_HOME}/boot.sh
+
+  if [ "${PIPESTATUS[*]}" != "0" ]; then
+    echo " !     Failed to install Sonar"
+    exit 1
+  fi
   echo " done"
-fi
+}
 
-# Install Jetty Runner
-echo -n "-----> Installing ${JETTY_RUNNER_DIST}...."
-mkdir -p ${BUILD_DIR}/jetty
-cp ${CACHE_DIR}/${JETTY_RUNNER_JAR} ${BUILD_DIR}/jetty/runner.jar
-echo " done"
 
-# Download Sonar if not in cache
-if [ ! -f ${CACHE_DIR}/${SONAR_DIST_ZIP} ]; then  
-  SONAR_URL="http://dist.sonar.codehaus.org/${SONAR_DIST_ZIP}"
-  echo -n "-----> Downloading ${SONAR_DIST}....."
-  curl --silent --location ${SONAR_URL} > ${CACHE_DIR}/${SONAR_DIST_ZIP}
+install_codescan() {
+  local BUILD_DIR=${1}
+  local CACHE_DIR=${2}
+
+  CODESCAN_DIST="sonar-salesforce-plugin-${CODESCAN_VERSION}"
+  CODESCAN_DIST_ZIP="${CODESCAN_DIST}.zip"
+  CODESCAN_HOME=${BUILD_DIR}/codescan
+
+  if [ ! -d ${CACHE_DIR} ]; then
+    mkdir -p ${CACHE_DIR}
+  fi
+
+  # Download CodeScan if not in cache
+  if [ ! -f ${CACHE_DIR}/${CODESCAN_DIST_ZIP} ]; then
+    CODESCAN_URL="http://downloads.code-scan.com/${CODESCAN_DIST_ZIP}"
+    echo -n "-----> Downloading ${CODESCAN_DIST}....."
+    curl --silent --location ${CODESCAN_URL} > ${CACHE_DIR}/${CODESCAN_DIST_ZIP}
+    echo " done"
+  fi
+
+  echo -n "-----> Installing ${CODESCAN_DIST}...."
+
+  # Unzip Codescan
+  # `unzip` command is not available.
+  cd ${BUILD_DIR}
+
+  jar xvf ${CACHE_DIR}/${CODESCAN_DIST_ZIP} >/dev/null
+  mv sonar-salesforce-plugin ${CODESCAN_HOME}
+
+  cp $CODESCAN_HOME/sonar-salesforce-plugin-$CODESCAN_VERSION.jar $SONAR_HOME/extensions/plugins
+
+  # Copy vendored antbuild.xml
+  if [ ! -f ${BUILD_DIR}/build.xml ]; then
+    cp ${BP_DIR}/etc/antbuild.xml ${BUILD_DIR}/build.xml
+  fi
+
+  if [ "${PIPESTATUS[*]}" != "0" ]; then
+    echo " !     Failed to install Sonar"
+    exit 1
+  fi
   echo " done"
-fi
+}
 
-echo -n "-----> Installing ${SONAR_DIST}...."
+install_ant() {
+  local BUILD_DIR=${1}
+  local CACHE_DIR=${2}
 
-# Unzip Sonar
-# `unzip` command is not available. 
-cd ${BUILD_DIR}
-jar xvf ${CACHE_DIR}/${SONAR_DIST_ZIP}
-mv ${SONAR_DIST} ${SONAR_HOME}
+  ANT_DIST="apache-ant-${ANT_VERSION}"
+  ANT_DIST_ZIP="${ANT_DIST}-bin.zip"
+  ANT_HOME=${BUILD_DIR}/ant
 
-# Copy vendored properties into Sonar
-cp ${BP_DIR}/etc/sonar.properties ${SONAR_HOME}/conf
+  if [ ! -d ${CACHE_DIR} ]; then
+    mkdir -p ${CACHE_DIR}
+  fi
 
-# Build the WAR
-cd ${SONAR_HOME}/war
-sed -i -r "s/ant$/ant -DsonarHome=\/app\/sonar/" build-war.sh
-chmod +x build-war.sh
-chmod +x apache-ant-1.7.0/bin/ant
-./build-war.sh
+  # Download Ant if not in cache
+  if [ ! -f ${CACHE_DIR}/${ANT_DIST_ZIP} ]; then
+    ANT_URL="http://downloads.code-scan.com/bundler/${ANT_DIST_ZIP}"
+    echo -n "-----> Downloading ${ANT_DIST}....."
+    curl --silent --location ${ANT_URL} > ${CACHE_DIR}/${ANT_DIST_ZIP}
+    echo " done"
+  fi
 
-# Copy the vendored boot script for launching the WAR
-cp ${BP_DIR}/opt/boot.sh ${SONAR_HOME}/war
-chmod +x ${SONAR_HOME}/war/boot.sh
+  echo -n "-----> Installing ${ANT_DIST}...."
 
-echo " done"
+  # Unzip Ant
+  # `unzip` command is not available.
+  cd ${BUILD_DIR}
+
+  jar xvf ${CACHE_DIR}/${ANT_DIST_ZIP} >/dev/null
+  mv ${ANT_DIST} ${ANT_HOME}
+
+  if [ "${PIPESTATUS[*]}" != "0" ]; then
+    echo " !     Failed to install Sonar"
+    exit 1
+  fi
+  echo " done"
+}
+
+install_jdk ${BUILD_DIR}
+install_sonarqube ${BUILD_DIR} ${CACHE_DIR}
+install_codescan ${BUILD_DIR} ${CACHE_DIR}
+install_ant ${BUILD_DIR} ${CACHE_DIR}
 
 
-if [ "${PIPESTATUS[*]}" != "0" ]; then
-  echo " !     Failed to install Sonar"
-  exit 1
-fi
