@@ -65,6 +65,8 @@ install_sonarqube() {
   cp ${BP_DIR}/opt/boot.sh ${SONAR_HOME}/
   chmod +x ${SONAR_HOME}/boot.sh
 
+  chmod +x ${SONAR_HOME}/elasticsearch/bin/elasticsearch
+
   if [ "${PIPESTATUS[*]}" != "0" ]; then
     echo " !     Failed to install Sonar"
     exit 1
@@ -74,5 +76,4 @@ install_sonarqube() {
 
 install_jdk ${BUILD_DIR}
 install_sonarqube ${BUILD_DIR} ${CACHE_DIR}
-
 
