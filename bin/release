@@ -15,6 +15,6 @@ EOF
 if [ ! -f $BUILD_DIR/Procfile ]; then
   cat <<EOF
 default_process_types:
-  web: chmod +666 /app/sonarqube/extensions/plugins/* && sh /app/sonarqube/boot.sh
+  web: sh /app/sonarqube/boot.sh
 EOF
 fi
