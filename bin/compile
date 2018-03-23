@@ -87,6 +87,7 @@ install_sonarts_plugin() {
 
   echo -n "-----> Installing SonarTS....."
   cp ${CACHE_DIR}/${SONARTS_DIST_JAR} ${SONAR_HOME}/extensions/plugins/${SONARTS_DIST_JAR}
+  chmod 666 ${SONAR_HOME}/extensions/plugins/${SONARTS_DIST_JAR}
   echo " done"
 }
 
@@ -106,6 +107,10 @@ install_nodejs() {
   tar xf ${CACHE_DIR}/${NODE_DIST_FILE}
   mv node* nodejs
   cd -
+
+  ln -s ${BUILD_DIR}/nodejs/bin/node ${BUILD_DIR}/.heroku/bin/node
+  ln -s ${BUILD_DIR}/nodejs/bin/npm ${BUILD_DIR}/.heroku/bin/npm
+  ln -s ${BUILD_DIR}/nodejs/bin/npx ${BUILD_DIR}/.heroku/bin/npx
 
   echo " done"
 }
