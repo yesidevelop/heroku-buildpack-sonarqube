@@ -78,7 +78,7 @@ install_sonarts_plugin() {
   local BUILD_DIR=${1}
   local CACHE_DIR=${2}
   
-  SONARTS_DIST_JAR="sonar-typescript-plugin.1.6.0.2388.jar"
+  SONARTS_DIST_JAR="sonar-typescript-plugin-1.6.0.2388.jar"
   SONARTS_URL="https://sonarsource.bintray.com/Distribution/sonar-typescript-plugin/${SONARTS_DIST_JAR}"
 
   echo -n "-----> Downloading SonarTS....."
