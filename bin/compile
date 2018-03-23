@@ -77,6 +77,7 @@ install_sonarqube() {
 install_sonarts_plugin() {
   local BUILD_DIR=${1}
   local CACHE_DIR=${2}
+  
   SONARTS_DIST_JAR="sonar-typescript-plugin.1.6.0.2388.jar"
   SONARTS_URL="https://sonarsource.bintray.com/Distribution/sonar-typescript-plugin/${SONAR_DIST_JAR}"
 
@@ -89,7 +90,29 @@ install_sonarts_plugin() {
   echo " done"
 }
 
+install_nodejs() {
+  local BUILD_DIR=${1}
+  
+  NODE_DIST_FILE="node-v8.10.0-linux-x64.tar.xz"
+  NODE_DIST_URL="https://nodejs.org/dist/v8.10.0/${NODE_DIST_FILE}"
+
+  echo -n "-----> Downloading NodeJS....."
+  curl --silent --location ${NODE_DIST_URL} > ${CACHE_DIR}/${NODE_DIST_FILE}
+  echo " done"
+
+  echo -n "-----> Installing NodeJS....."
+
+  cd ${BUILD_DIR}
+  tar xf ${CACHE_DIR}/${NODE_DIST_FILE}
+  mv node* nodejs
+  cd -
+
+  echo " done"
+}
+
+
 install_jdk ${BUILD_DIR}
+install_nodejs ${BUILD_DIR}
 install_sonarqube ${BUILD_DIR} ${CACHE_DIR}
 install_sonarts_plugin ${BUILD_DIR} ${CACHE_DIR}
 
