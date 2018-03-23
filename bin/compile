@@ -74,6 +74,23 @@ install_sonarqube() {
   echo " done"
 }
 
+install_sonarts_plugin() {
+  local BUILD_DIR=${1}
+  local CACHE_DIR=${2}
+  SONARTS_DIST_JAR="sonar-typescript-plugin.1.6.0.2388.jar"
+  SONARTS_URL="https://sonarsource.bintray.com/Distribution/sonar-typescript-plugin/${SONAR_DIST_JAR}"
+
+  echo -n "-----> Downloading SonarTS....."
+  curl --silent --location ${SONARTS_URL} > ${CACHE_DIR}/${SONARTS_DIST_JAR}
+  echo " done"
+
+  echo -n "-----> Installing SonarTS....."
+  cp ${CACHE_DIR}/${SONARTS_DIST_JAR} ${SONAR_HOME}/extensions/plugins/${SONARTS_DIST_JAR}
+  echo " done"
+}
+
 install_jdk ${BUILD_DIR}
 install_sonarqube ${BUILD_DIR} ${CACHE_DIR}
+install_sonarts_plugin ${BUILD_DIR} ${CACHE_DIR}
+
 
