@@ -14,12 +14,21 @@ SONAR_VERSION="7.0"
 ANT_VERSION="1.9.9"
 SONAR_HOME=${BUILD_DIR}/sonarqube
 
+if [ ! -d ${CACHE_DIR} ]; then
+    mkdir -p ${CACHE_DIR}
+fi
+
 install_jdk() {
   local install_dir=${1}
+  local CACHE_DIR=${2}
 
   JVM_COMMON_BUILDPACK=${JVM_COMMON_BUILDPACK:-https://codon-buildpacks.s3.amazonaws.com/buildpacks/heroku/jvm-common.tgz}
-  mkdir -p /tmp/jvm-common
-  curl --retry 3 --silent --location $JVM_COMMON_BUILDPACK | tar xzm -C /tmp/jvm-common --strip-components=1
+  JVM_COMMON="jvm-common.tgz"
+  if [ ! -f ${CACHE_DIR}/${JVM_COMMON} ]; then
+    curl --retry 3 --silent --location $JVM_COMMON_BUILDPACK > ${CACHE_DIR}/${JVM_COMMON}
+  fi
+  mkdir -p /tmp/jvm-common  
+  tar xzmf ${CACHE_DIR}/${JVM_COMMON} -C /tmp/jvm-common --strip-components=1
   source /tmp/jvm-common/bin/util
   source /tmp/jvm-common/bin/java
   source /tmp/jvm-common/opt/jdbc.sh
@@ -34,11 +43,7 @@ install_sonarqube() {
   SONAR_DIST="sonarqube-${SONAR_VERSION}"
   SONAR_DIST_ZIP="${SONAR_DIST}.zip"
 
-  if [ ! -d ${CACHE_DIR} ]; then
-    mkdir -p ${CACHE_DIR}
-  fi
-
-  # Download Sonar if not in cache
+  # Download Sonar
   if [ ! -f ${CACHE_DIR}/${SONAR_DIST_ZIP} ]; then
     SONAR_URL="https://sonarsource.bintray.com/Distribution/sonarqube/${SONAR_DIST_ZIP}"
     echo -n "-----> Downloading ${SONAR_DIST}....."
@@ -46,13 +51,11 @@ install_sonarqube() {
     echo " done"
   fi
 
+
   echo -n "-----> Installing ${SONAR_DIST}...."
 
-  # Unzip Sonar
-  # `unzip` command is not available.
   cd ${BUILD_DIR}
-
-  jar xvf ${CACHE_DIR}/${SONAR_DIST_ZIP} >/dev/null
+  jar xf ${CACHE_DIR}/${SONAR_DIST_ZIP}
   mv ${SONAR_DIST} ${SONAR_HOME}
 
   # Copy vendored properties into Sonar
@@ -93,34 +96,32 @@ install_sonarts_plugin() {
 
 install_nodejs() {
   local BUILD_DIR=${1}
-  
+  local CACHE_DIR=${2}
+
   NODE_DIST_FILE="node-v8.10.0-linux-x64.tar.xz"
   NODE_DIST_URL="https://nodejs.org/dist/v8.10.0/${NODE_DIST_FILE}"
 
-  echo -n "-----> Downloading NodeJS....."
-  curl --silent --location ${NODE_DIST_URL} > ${CACHE_DIR}/${NODE_DIST_FILE}
-  echo " done"
+  if [ ! -f ${CACHE_DIR}/${NODE_DIST_FILE} ]; then
+    echo -n "-----> Downloading NodeJS....."
+    curl --silent --location ${NODE_DIST_URL} > ${CACHE_DIR}/${NODE_DIST_FILE}
+    echo " done"
+  fi
 
   echo -n "-----> Installing NodeJS....."
 
-  cd ${BUILD_DIR}
-  tar xf ${CACHE_DIR}/${NODE_DIST_FILE}
-  mv node* nodejs
-  cd -
+  tar xf ${CACHE_DIR}/${NODE_DIST_FILE} -C ${BUILD_DIR}
 
-  cd ${BUILD_DIR}/.heroku/bin
-  ln -s ../../nodejs/bin/node node
-  ln -s ../../nodejs/bin/npm npm
-  ln -s ../../nodejs/bin/npx npx
-  cd -
+  ln -s ${BUILD_DIR}/${NODE_DIST_FILE}/bin/node ${BUILD_DIR}/.heroku/bin/node
+  ln -s ${BUILD_DIR}/${NODE_DIST_FILE}/bin/npm ${BUILD_DIR}/.heroku/bin/npm
+  ln -s ${BUILD_DIR}/${NODE_DIST_FILE}/bin/npx ${BUILD_DIR}/.heroku/bin/npx
 
   echo " done"
 }
 
 
-install_jdk ${BUILD_DIR}
-install_nodejs ${BUILD_DIR}
+install_jdk ${BUILD_DIR} ${CACHE_DIR}
+install_nodejs ${BUILD_DIR} ${CACHE_DIR}
 install_sonarqube ${BUILD_DIR} ${CACHE_DIR}
-install_sonarts_plugin ${BUILD_DIR} ${CACHE_DIR}
+#install_sonarts_plugin ${BUILD_DIR} ${CACHE_DIR}
 
 
