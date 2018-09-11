@@ -98,7 +98,7 @@ install_nodejs() {
   local BUILD_DIR=${1}
   local CACHE_DIR=${2}
 
-  NODE_DIST_FILE="node-v8.10.0-linux-x64.tar.xz"
+  NODE_DIST_FILE="node-v8.10.0-linux-x64.tar.gz"
   NODE_DIST_URL="https://nodejs.org/dist/v8.10.0/${NODE_DIST_FILE}"
 
   if [ ! -f ${CACHE_DIR}/${NODE_DIST_FILE} ]; then
