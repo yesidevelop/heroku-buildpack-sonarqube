@@ -55,7 +55,7 @@ install_sonarqube() {
   echo -n "-----> Installing ${SONAR_DIST}...."
 
   cd ${BUILD_DIR}
-  jar xf ${CACHE_DIR}/${SONAR_DIST_ZIP}
+  ${BUILD_DIR}/.jdk/bin/jar xf ${CACHE_DIR}/${SONAR_DIST_ZIP}
   mv ${SONAR_DIST} ${SONAR_HOME}
 
   # Copy vendored properties into Sonar
