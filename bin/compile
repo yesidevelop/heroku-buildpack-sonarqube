@@ -59,7 +59,7 @@ install_sonarqube() {
   echo -n "-----> Installing ${SONAR_DIST}...."
 
   cd ${BUILD_DIR}
-  jar xf ${CACHE_DIR}/${SONAR_DIST_ZIP}
+  jar xvf ${CACHE_DIR}/${SONAR_DIST_ZIP}
   ls ${CACHE_DIR}
   mv ${CACHE_DIR}/${SONAR_DIST} ${SONAR_HOME}
 
