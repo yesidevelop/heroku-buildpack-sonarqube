@@ -10,7 +10,7 @@ CACHE_DIR=$2
 
 BP_DIR=`cd $(dirname $0); cd ..; pwd`
 
-SONAR_VERSION="7.4-community"
+SONAR_VERSION="7.4"
 ANT_VERSION="1.9.9"
 SONAR_HOME=${BUILD_DIR}/sonarqube
 
@@ -45,7 +45,7 @@ install_sonarqube() {
 
   # Download Sonar
   if [ ! -f ${CACHE_DIR}/${SONAR_DIST_ZIP} ]; then
-    SONAR_URL="https://sonarsource.bintray.com/Distribution/sonarqube/${SONAR_DIST_ZIP}"
+    SONAR_URL="https://binaries.sonarsource.com/Distribution/sonarqube/${SONAR_DIST_ZIP}"
     echo -n "-----> Downloading ${SONAR_DIST}....."
     curl --silent --location ${SONAR_URL} > ${CACHE_DIR}/${SONAR_DIST_ZIP}
     echo " done"
