@@ -60,8 +60,7 @@ install_sonarqube() {
 
   cd ${BUILD_DIR}
   jar xvf ${CACHE_DIR}/${SONAR_DIST_ZIP}
-  ls ${CACHE_DIR}
-  mv ${CACHE_DIR}/${SONAR_DIST} ${SONAR_HOME}
+  mv ${BUILD_DIR}/${SONAR_DIST} ${SONAR_HOME}
 
   # Copy vendored properties into Sonar
   cp ${BP_DIR}/etc/sonar.properties ${SONAR_HOME}/conf
