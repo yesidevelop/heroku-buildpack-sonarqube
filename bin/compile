@@ -77,6 +77,7 @@ install_sonarqube() {
   echo "I am here 5"
 
   chmod +x ${SONAR_HOME}/elasticsearch/bin/elasticsearch
+  cat ${SONAR_HOME}/elasticsearch/config/elasticsearch.yml
   echo "I am here 6"
   if [ "${PIPESTATUS[*]}" != "0" ]; then
     echo " !     Failed to install Sonar"
