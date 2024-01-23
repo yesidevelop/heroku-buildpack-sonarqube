@@ -60,18 +60,23 @@ install_sonarqube() {
   jar xvf ${BUILD_DIR}/${SONAR_DIST_ZIP}
   mv ${BUILD_DIR}/${SONAR_DIST} ${SONAR_HOME}
 
+  echo "I am here 1"
+  echo $SONAR_HOME
+
   # Copy vendored properties into Sonar
   cp ${BP_DIR}/etc/sonar.properties ${SONAR_HOME}/conf
-
+  echo "I am here 2"
   #make wrapper writable
   chmod +x $SONAR_HOME/bin/linux-x86-64/./wrapper $SONAR_HOME/bin/linux-x86-64/sonar.sh
-
+  echo "I am here 3"
   # Copy the vendored boot script for launching the WAR
   cp ${BP_DIR}/opt/boot.sh ${SONAR_HOME}/
+  echo "I am here 4"
   chmod +x ${SONAR_HOME}/boot.sh
+  echo "I am here 5"
 
   chmod +x ${SONAR_HOME}/elasticsearch/bin/elasticsearch
-
+  echo "I am here 6"
   if [ "${PIPESTATUS[*]}" != "0" ]; then
     echo " !     Failed to install Sonar"
     exit 1
