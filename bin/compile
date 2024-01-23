@@ -48,12 +48,12 @@ install_sonarqube() {
   SONAR_DIST_ZIP="${SONAR_DIST}.zip"
 
   # Download Sonar
-  if [ ! -f ${CACHE_DIR}/${SONAR_DIST_ZIP} ]; then
-    SONAR_URL="https://binaries.sonarsource.com/Distribution/sonarqube/${SONAR_DIST_ZIP}"
-    echo -n "-----> Downloading ${SONAR_URL}....."
-    curl --location ${SONAR_URL} > ${CACHE_DIR}/${SONAR_DIST_ZIP}
-    echo " done"
-  fi
+  # if [ ! -f ${CACHE_DIR}/${SONAR_DIST_ZIP} ]; then
+  #   SONAR_URL="https://binaries.sonarsource.com/Distribution/sonarqube/${SONAR_DIST_ZIP}"
+  #   echo -n "-----> Downloading ${SONAR_URL}....."
+  #   curl --location ${SONAR_URL} > ${CACHE_DIR}/${SONAR_DIST_ZIP}
+  #   echo " done"
+  # fi
 
 
   echo -n "-----> Installing ${SONAR_DIST}...."
